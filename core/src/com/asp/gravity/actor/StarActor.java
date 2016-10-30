@@ -42,9 +42,7 @@ public class StarActor extends GravityActor<StarData> {
         final MassData massData = body.getMassData();
         massData.mass = MASS;
         body.setMassData(massData);
-        final StarData starData = new StarData(MASS, RADIUS);
-        starData.setPosition(position);
-        body.setUserData(starData);
+        body.setUserData(new StarData(MASS, RADIUS));
 
         return body;
     }

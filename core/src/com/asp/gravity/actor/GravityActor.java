@@ -7,9 +7,12 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.utils.Array;
 
 /**
  * @author aspitsyn
@@ -40,7 +43,6 @@ public abstract class GravityActor<T extends GravityData> extends Actor {
 
     public void move(final Vector2 targetPosition) {
         body.setTransform(targetPosition, 0);
-        getUserData().setPosition(targetPosition);
     }
 
     public void move(final float x, final float y) {
@@ -52,18 +54,31 @@ public abstract class GravityActor<T extends GravityData> extends Actor {
         final T userData = getUserData();
         final float radius = userData.getRadius();
 
+        final Array<Fixture> fixtureList = body.getFixtureList();
+        if (fixtureList.size == 0) {
+            createCircleShape();
+        } else {
+            final Fixture fixture = fixtureList.get(0);
+            final CircleShape shape = (CircleShape) fixture.getShape();
+            if (shape.getRadius() != userData.getRadius()) {
+                body.destroyFixture(fixture);
+                createCircleShape();
+            }
+        }
+
         final MassData massData = body.getMassData();
         massData.mass = userData.getMass();
         body.setMassData(massData);
-        userData.setPosition(body.getPosition());
 
         batch.draw(texture, body.getPosition().x - radius, body.getPosition().y - radius, radius * 2, radius * 2);
         setBounds(body.getPosition().x - radius, body.getPosition().y - radius, radius * 2, radius * 2);
     }
 
-    @Override
-    public boolean remove() {
-        return super.remove();
+    private void createCircleShape() {
+        final CircleShape newShape = new CircleShape();
+        newShape.setRadius(getUserData().getRadius());
+        body.createFixture(newShape, 0);
+        newShape.dispose();
     }
 
     public void applyGravityTo(final GravityActor target) {

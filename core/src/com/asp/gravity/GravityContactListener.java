@@ -6,7 +6,6 @@ import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
-import com.badlogic.gdx.physics.box2d.World;
 
 /**
  * @author aspitsyn
@@ -53,9 +52,11 @@ public class GravityContactListener implements ContactListener {
         if (userDataA.getMass() >  userDataB.getMass()) {
             userDataB.markForDeletion();
             userDataA.setMass(userDataA.getMass() + userDataB.getMass());
+            userDataA.setVolume(userDataA.getVolume() + userDataB.getVolume());
         } else {
             userDataA.markForDeletion();
             userDataB.setMass(userDataB.getMass() + userDataA.getMass());
+            userDataB.setVolume(userDataB.getVolume() + userDataA.getVolume());
         }
     }
 }
