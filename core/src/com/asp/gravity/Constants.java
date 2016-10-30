@@ -1,16 +1,12 @@
 package com.asp.gravity;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.utils.Json;
-
 /**
  * @author aspitsyn
  */
 public class Constants {
 
-    public static final int WIDTH = 800;
-    public static final int HEIGHT = 480;
+    public static final float WORLD_TO_SCREEN = 10;
+    public static final float INITIAL_ZOOM = 0.25f;
     public static final float G = 1;
     public static final float INITIAL_FORCE = 500;
 }

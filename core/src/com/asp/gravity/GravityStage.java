@@ -38,11 +38,12 @@ public class GravityStage extends Stage {
 
     public GravityStage(final AssetsProvider assetsProvider) {
         super(new ScalingViewport(
-                Scaling.none, Constants.WIDTH, Constants.HEIGHT,
-                new OrthographicCamera(Constants.WIDTH, Constants.HEIGHT)
+                Scaling.stretch, Gdx.graphics.getWidth() * Constants.WORLD_TO_SCREEN, Gdx.graphics.getHeight() * Constants.WORLD_TO_SCREEN,
+                new OrthographicCamera(Gdx.graphics.getWidth() * Constants.WORLD_TO_SCREEN, Gdx.graphics.getHeight() * Constants.WORLD_TO_SCREEN)
         ));
         this.assetsProvider = assetsProvider;
 
+        ((OrthographicCamera) getCamera()).zoom = Constants.INITIAL_ZOOM;
         Gdx.input.setInputProcessor(this);
         world.setContactListener(new GravityContactListener());
 
@@ -91,7 +92,7 @@ public class GravityStage extends Stage {
 
         for (final Iterator<PlanetActor> iterator = planetActors.iterator(); iterator.hasNext(); ) {
             final PlanetActor planetActor = iterator.next();
-            if (planetActor.getUserData().isNeedToDelete()) {
+            if (planetActor.getUserData() != null && planetActor.getUserData().isNeedToDelete()) {
                 iterator.remove();
                 planetActor.remove();
             }

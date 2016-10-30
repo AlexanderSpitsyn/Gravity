@@ -52,6 +52,10 @@ public abstract class GravityActor<T extends GravityData> extends Actor {
     @Override
     public void draw(final Batch batch, final float parentAlpha) {
         final T userData = getUserData();
+        if (userData == null) {
+            return;
+        }
+
         final float radius = userData.getRadius();
 
         final Array<Fixture> fixtureList = body.getFixtureList();
