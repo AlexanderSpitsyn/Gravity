@@ -1,14 +1,13 @@
 package com.asp.gravity;
 
-import com.asp.gravity.actor.StarActor;
 import com.asp.gravity.actor.PlanetActor;
+import com.asp.gravity.actor.StarActor;
 import com.asp.gravity.data.GravityData;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.JointEdge;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -32,18 +31,22 @@ public class GravityStage extends Stage {
 
     private final Box2DDebugRenderer renderer = new Box2DDebugRenderer();
 
+    private final AssetsProvider assetsProvider;
     private final World world = new World(new Vector2(0, 0), true);
-    private final StarActor starActor = new StarActor(world);
+    private final StarActor starActor;
     private final List<PlanetActor> planetActors = new ArrayList<>();
 
-    public GravityStage() {
+    public GravityStage(final AssetsProvider assetsProvider) {
         super(new ScalingViewport(
-                Scaling.stretch, Constants.WIDTH, Constants.HEIGHT,
+                Scaling.none, Constants.WIDTH, Constants.HEIGHT,
                 new OrthographicCamera(Constants.WIDTH, Constants.HEIGHT)
         ));
-        Gdx.input.setInputProcessor(this);
+        this.assetsProvider = assetsProvider;
 
+        Gdx.input.setInputProcessor(this);
         world.setContactListener(new GravityContactListener());
+
+        starActor = new StarActor(world, assetsProvider);
         addActor(starActor);
 
         addListener(new DragListener() {
@@ -51,7 +54,7 @@ public class GravityStage extends Stage {
 
             @Override
             public void dragStart(final InputEvent event, final float x, final float y, final int pointer) {
-                planetActor = new PlanetActor(world);
+                planetActor = new PlanetActor(world, assetsProvider);
                 addActor(planetActor);
                 planetActor.setAccelerationStartPoint(new Vector2(event.getStageX(), event.getStageY()));
             }
@@ -96,20 +99,22 @@ public class GravityStage extends Stage {
 
         final Array<Body> bodies = new Array<>();
         world.getBodies(bodies);
-        bodies.forEach(body -> {
+        for (final Body body : bodies) {
             final Object userData = body.getUserData();
             if (userData != null && ((GravityData) userData).isNeedToDelete()) {
                 world.destroyBody(body);
             }
-        });
+        }
 
-        planetActors.forEach(planetActor -> {
+        for (final PlanetActor planetActor : planetActors) {
             planetActor.applyGravityTo(starActor);
             starActor.applyGravityTo(planetActor);
-            planetActors.stream()
-                    .filter(planetActor1 -> !planetActor.equals(planetActor1))
-                    .forEach(planetActor::applyGravityTo);
-        });
+            for (final PlanetActor planetActor1 : planetActors) {
+                if (!planetActor.equals(planetActor1)) {
+                    planetActor.applyGravityTo(planetActor1);
+                }
+            }
+        }
 
         renderer.render(world, getCamera().combined);
     }

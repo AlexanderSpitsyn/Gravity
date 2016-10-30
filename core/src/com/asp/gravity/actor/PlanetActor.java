@@ -1,8 +1,8 @@
 package com.asp.gravity.actor;
 
+import com.asp.gravity.AssetsProvider;
 import com.asp.gravity.Constants;
 import com.asp.gravity.data.PlanetData;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -33,8 +33,8 @@ public class PlanetActor extends GravityActor<PlanetData> {
     private Vector2 accelerationStartPoint;
     private Vector2 accelerationEndPoint;
 
-    public PlanetActor(final World world) {
-        super(world);
+    public PlanetActor(final World world, final AssetsProvider assetsProvider) {
+        super(world, assetsProvider);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class PlanetActor extends GravityActor<PlanetData> {
 
     @Override
     protected Texture createTexture() {
-        return new Texture(Gdx.files.internal("img/star.png"));
+        return assetsProvider.getTexture(AssetsProvider.STAR_IMAGE_PATH);
     }
 
     public void setAccelerationStartPoint(final Vector2 accelerationStartPoint) {

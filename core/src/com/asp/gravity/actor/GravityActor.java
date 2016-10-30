@@ -1,5 +1,6 @@
 package com.asp.gravity.actor;
 
+import com.asp.gravity.AssetsProvider;
 import com.asp.gravity.Constants;
 import com.asp.gravity.data.GravityData;
 import com.badlogic.gdx.graphics.Texture;
@@ -17,11 +18,13 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 public abstract class GravityActor<T extends GravityData> extends Actor {
 
     protected final World world;
+    protected final AssetsProvider assetsProvider;
     protected final Body body;
     protected final Texture texture;
 
-    public GravityActor(final World world) {
+    public GravityActor(final World world, final AssetsProvider assetsProvider) {
         this.world = world;
+        this.assetsProvider = assetsProvider;
         this.body = createBody();
         this.texture = createTexture();
     }
