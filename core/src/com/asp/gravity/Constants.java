@@ -6,7 +6,6 @@ package com.asp.gravity;
 public class Constants {
 
     public static final float WORLD_TO_SCREEN = 10;
-    public static final float INITIAL_ZOOM = 0.25f;
     public static final float G = 1;
     public static final float INITIAL_FORCE = 500;
 }

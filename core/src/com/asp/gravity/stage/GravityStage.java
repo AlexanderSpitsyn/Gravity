@@ -1,5 +1,9 @@
-package com.asp.gravity;
+package com.asp.gravity.stage;
 
+import com.asp.gravity.AssetsProvider;
+import com.asp.gravity.Constants;
+import com.asp.gravity.GravityContactListener;
+import com.asp.gravity.GravityGameManager;
 import com.asp.gravity.actor.PlanetActor;
 import com.asp.gravity.actor.StarActor;
 import com.asp.gravity.data.GravityData;
@@ -31,20 +35,21 @@ public class GravityStage extends Stage {
 
     private final Box2DDebugRenderer renderer = new Box2DDebugRenderer();
 
+    private final GravityGameManager gravityGameManager;
     private final AssetsProvider assetsProvider;
     private final World world = new World(new Vector2(0, 0), true);
     private final StarActor starActor;
     private final List<PlanetActor> planetActors = new ArrayList<>();
 
-    public GravityStage(final AssetsProvider assetsProvider) {
+    public GravityStage(final GravityGameManager gravityGameManager, final AssetsProvider assetsProvider) {
         super(new ScalingViewport(
                 Scaling.stretch, Gdx.graphics.getWidth() * Constants.WORLD_TO_SCREEN, Gdx.graphics.getHeight() * Constants.WORLD_TO_SCREEN,
                 new OrthographicCamera(Gdx.graphics.getWidth() * Constants.WORLD_TO_SCREEN, Gdx.graphics.getHeight() * Constants.WORLD_TO_SCREEN)
         ));
+        this.gravityGameManager = gravityGameManager;
         this.assetsProvider = assetsProvider;
 
-        ((OrthographicCamera) getCamera()).zoom = Constants.INITIAL_ZOOM;
-        Gdx.input.setInputProcessor(this);
+        ((OrthographicCamera) getCamera()).zoom = gravityGameManager.getZoom();
         world.setContactListener(new GravityContactListener());
 
         starActor = new StarActor(world, assetsProvider);
@@ -118,5 +123,6 @@ public class GravityStage extends Stage {
         }
 
         renderer.render(world, getCamera().combined);
+        ((OrthographicCamera) getCamera()).zoom = gravityGameManager.getZoom();
     }
 }

@@ -1,9 +1,11 @@
 package com.asp.gravity;
 
+import com.asp.gravity.stage.GravityStage;
+import com.asp.gravity.stage.HudStage;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 
 /**
  * @author aspitsyn
@@ -11,16 +13,22 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
  */
 public class GravityScreen implements Screen {
 
+    private final GravityGameManager gravityGameManager;
     private final AssetsProvider assetsProvider;
-    private Stage stage;
+    private GravityStage gravityStage;
+    private HudStage hudStage;
 
-    public GravityScreen(final AssetsProvider assetsProvider) {
+    public GravityScreen(final GravityGameManager gravityGameManager, final AssetsProvider assetsProvider) {
+        this.gravityGameManager = gravityGameManager;
         this.assetsProvider = assetsProvider;
     }
 
     @Override
     public void show() {
-        stage = new GravityStage(assetsProvider);
+        gravityStage = new GravityStage(gravityGameManager, assetsProvider);
+        hudStage = new HudStage(gravityGameManager, assetsProvider);
+
+        Gdx.input.setInputProcessor(new InputMultiplexer(hudStage, gravityStage));
     }
 
     @Override
@@ -31,8 +39,11 @@ public class GravityScreen implements Screen {
                 | (Gdx.graphics.getBufferFormat().coverageSampling ? GL20.GL_COVERAGE_BUFFER_BIT_NV : 0)
         );
 
-        stage.draw();
-        stage.act(delta);
+        gravityStage.draw();
+        gravityStage.act(delta);
+
+        hudStage.draw();
+        hudStage.act(delta);
     }
 
     @Override
@@ -57,6 +68,7 @@ public class GravityScreen implements Screen {
 
     @Override
     public void dispose() {
-        stage.dispose();
+        gravityStage.dispose();
+        hudStage.dispose();
     }
 }
