@@ -18,7 +18,7 @@ import com.badlogic.gdx.physics.box2d.World;
  */
 public class StarActor extends GravityActor<StarData> {
 
-    private static final float RADIUS = 40;
+    private static final float RADIUS = 200;
     private static final float DENSITY = 0;
     private static final float MASS = 32890;
 

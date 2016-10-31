@@ -91,7 +91,9 @@ public class PlanetActor extends GravityActor<PlanetData> {
         shapeRenderer.setTransformMatrix(batch.getTransformMatrix());
         shapeRenderer.setColor(Color.BLACK);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        orbit.forEach(vector2 -> shapeRenderer.circle(vector2.x, vector2.y, 1));
+        for (final Vector2 vector2 : orbit) {
+            shapeRenderer.circle(vector2.x, vector2.y, 1);
+        }
         shapeRenderer.end();
         batch.begin();
     }

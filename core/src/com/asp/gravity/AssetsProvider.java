@@ -11,8 +11,8 @@ import com.badlogic.gdx.utils.Disposable;
  */
 public class AssetsProvider implements Disposable {
 
-    public static final String STAR_IMAGE_PATH = "img/star.png";
-    public static final String TEXTURE_PATH = "img/texture.pack";
+    public static final String STAR_IMAGE_PATH = "star.png";
+    public static final String TEXTURE_PATH = "texture.atlas";
 
     private final AssetManager assetManager = new AssetManager();
 

@@ -82,6 +82,9 @@ public class GravityStage extends Stage {
     @Override
     public void act(final float delta) {
         super.act(delta);
+        if (gravityGameManager.getState().equals(GravityGameManager.State.PAUSED)) {
+            return;
+        }
 
         accumulator += delta;
 
@@ -94,6 +97,12 @@ public class GravityStage extends Stage {
     @Override
     public void draw() {
         super.draw();
+        renderer.render(world, getCamera().combined);
+        ((OrthographicCamera) getCamera()).zoom = gravityGameManager.getZoom();
+
+        if (gravityGameManager.getState().equals(GravityGameManager.State.PAUSED)) {
+            return;
+        }
 
         for (final Iterator<PlanetActor> iterator = planetActors.iterator(); iterator.hasNext(); ) {
             final PlanetActor planetActor = iterator.next();
@@ -121,8 +130,5 @@ public class GravityStage extends Stage {
                 }
             }
         }
-
-        renderer.render(world, getCamera().combined);
-        ((OrthographicCamera) getCamera()).zoom = gravityGameManager.getZoom();
     }
 }
