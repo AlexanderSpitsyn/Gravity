@@ -1,6 +1,7 @@
 package com.asp.gravity;
 
 import com.asp.gravity.data.GravityData;
+import com.asp.gravity.data.StarData;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
@@ -49,14 +50,33 @@ public class GravityContactListener implements ContactListener {
 
         final GravityData userDataA = (GravityData) bodyA.getUserData();
         final GravityData userDataB = (GravityData) bodyB.getUserData();
-        if (userDataA.getMass() >  userDataB.getMass()) {
-            userDataB.markForDeletion();
-            userDataA.setMass(userDataA.getMass() + userDataB.getMass());
-            userDataA.setVolume(userDataA.getVolume() + userDataB.getVolume());
+        if (userDataA instanceof StarData) {
+            absorb(userDataA, userDataB);
+        } else if (userDataB instanceof StarData) {
+            absorb(userDataB, userDataA);
+        } else if (userDataA.getMass() >  userDataB.getMass()) {
+            processCollision(userDataA, userDataB);
         } else {
-            userDataA.markForDeletion();
-            userDataB.setMass(userDataB.getMass() + userDataA.getMass());
-            userDataB.setVolume(userDataB.getVolume() + userDataA.getVolume());
+            processCollision(userDataB, userDataA);
         }
+    }
+
+    private void processCollision(final GravityData userDataHeavy, final GravityData userDataLight) {
+        if (userDataHeavy.getMass() / userDataLight.getMass() > Constants.ABSORPTION_MASS_RATIO) {
+            absorb(userDataHeavy, userDataLight);
+        } else {
+            if (userDataHeavy.getMass() > Constants.SPLIT_MIN_MASS) {
+                userDataHeavy.markForSplit();
+            }
+            if (userDataLight.getMass() > Constants.SPLIT_MIN_MASS) {
+                userDataLight.markForSplit();
+            }
+        }
+    }
+
+    private void absorb(final GravityData userData, final GravityData userDataTarget) {
+        userDataTarget.markForDeletion();
+        userData.setMass(userData.getMass() + userDataTarget.getMass());
+        userData.setVolume(userData.getVolume() + userDataTarget.getVolume());
     }
 }

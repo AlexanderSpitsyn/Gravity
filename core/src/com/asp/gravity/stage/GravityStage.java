@@ -7,6 +7,7 @@ import com.asp.gravity.GravityGameManager;
 import com.asp.gravity.actor.PlanetActor;
 import com.asp.gravity.actor.StarActor;
 import com.asp.gravity.data.GravityData;
+import com.asp.gravity.data.PlanetData;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -21,6 +22,7 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,7 +41,7 @@ public class GravityStage extends Stage {
     private final AssetsProvider assetsProvider;
     private final World world = new World(new Vector2(0, 0), true);
     private final StarActor starActor;
-    private final List<PlanetActor> planetActors = new ArrayList<>();
+    private final List<PlanetActor> planetActors = Collections.synchronizedList(new ArrayList<>());
 
     public GravityStage(final GravityGameManager gravityGameManager, final AssetsProvider assetsProvider) {
         super(new ScalingViewport(
@@ -82,31 +84,32 @@ public class GravityStage extends Stage {
     @Override
     public void act(final float delta) {
         super.act(delta);
+        ((OrthographicCamera) getCamera()).zoom = gravityGameManager.getZoom();
         if (gravityGameManager.getState().equals(GravityGameManager.State.PAUSED)) {
             return;
         }
 
-        accumulator += delta;
+        processPlanets();
 
+        accumulator += delta;
         while (accumulator >= delta) {
             world.step(TIME_STEP, 6, 2);
             accumulator -= TIME_STEP;
         }
     }
 
-    @Override
-    public void draw() {
-        super.draw();
-        renderer.render(world, getCamera().combined);
-        ((OrthographicCamera) getCamera()).zoom = gravityGameManager.getZoom();
-
-        if (gravityGameManager.getState().equals(GravityGameManager.State.PAUSED)) {
-            return;
-        }
-
+    private void processPlanets() {
+        final List<PlanetActor> planetActorsNew = new ArrayList<>();
         for (final Iterator<PlanetActor> iterator = planetActors.iterator(); iterator.hasNext(); ) {
             final PlanetActor planetActor = iterator.next();
-            if (planetActor.getUserData() != null && planetActor.getUserData().isNeedToDelete()) {
+            final PlanetData userData = planetActor.getUserData();
+            if (userData == null) {
+                continue;
+            }
+            if (userData.isNeedToSplit()) {
+                planetActorsNew.addAll(planetActor.split());
+            }
+            if (userData.isNeedToDelete()) {
                 iterator.remove();
                 planetActor.remove();
             }
@@ -130,5 +133,16 @@ public class GravityStage extends Stage {
                 }
             }
         }
+
+        for (final PlanetActor planetActorNew : planetActorsNew) {
+            addActor(planetActorNew);
+        }
+        planetActors.addAll(planetActorsNew);
+    }
+
+    @Override
+    public void draw() {
+        super.draw();
+        renderer.render(world, getCamera().combined);
     }
 }

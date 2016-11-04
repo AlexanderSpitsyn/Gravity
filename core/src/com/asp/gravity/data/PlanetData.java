@@ -6,6 +6,9 @@ package com.asp.gravity.data;
  */
 public class PlanetData extends GravityData {
 
+    public PlanetData() {
+    }
+
     public PlanetData(final float mass, final float radius) {
         super(mass, radius);
     }

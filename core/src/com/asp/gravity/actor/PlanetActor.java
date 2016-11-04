@@ -8,13 +8,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,10 +20,6 @@ import java.util.List;
  */
 public class PlanetActor extends GravityActor<PlanetData> {
 
-    private static final int RADIUS = 10;
-    private static final float DENSITY = 0;
-    private static final float MASS = 1;
-
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final List<Vector2> orbit = new ArrayList<>();
     private int orbitSplitCounter;
@@ -34,26 +27,11 @@ public class PlanetActor extends GravityActor<PlanetData> {
     private Vector2 accelerationEndPoint;
 
     public PlanetActor(final World world, final AssetsProvider assetsProvider) {
-        super(world, assetsProvider);
+        this(world, assetsProvider, new PlanetData(Constants.PLANET_MASS, Constants.PLANET_RADIUS));
     }
 
-    @Override
-    protected Body createBody() {
-        final BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        final Body body = world.createBody(bodyDef);
-
-        final CircleShape shape = new CircleShape();
-        shape.setRadius(RADIUS);
-        body.createFixture(shape, DENSITY);
-        shape.dispose();
-
-        final MassData massData = body.getMassData();
-        massData.mass = MASS;
-        body.setMassData(massData);
-        body.setUserData(new PlanetData(MASS, RADIUS));
-
-        return body;
+    public PlanetActor(final World world, final AssetsProvider assetsProvider, final PlanetData gravityData) {
+        super(world, assetsProvider, gravityData);
     }
 
     @Override
@@ -80,6 +58,32 @@ public class PlanetActor extends GravityActor<PlanetData> {
         orbit.clear();
     }
 
+    public List<PlanetActor> split() {
+        final PlanetData userData = getUserData();
+        if (userData == null || !userData.isNeedToSplit()) {
+            return Collections.emptyList();
+        }
+        int newPlanetsCount = (int) (userData.getMass() / Constants.SPLIT_MASS_RATION);
+        if (newPlanetsCount <= 1) {
+            newPlanetsCount = 2;
+        }
+
+        final List<PlanetActor> newPlanetActors = new ArrayList<>(newPlanetsCount);
+        for (int i = 0; i < newPlanetsCount; i++) {
+            final Vector2 newPosition = body.getPosition().cpy();
+
+            final PlanetData newPlanetData = new PlanetData();
+            newPlanetData.setMass(userData.getMass() / newPlanetsCount);
+            newPlanetData.setVolume(userData.getVolume() / newPlanetsCount);
+            newPlanetData.setPosition(newPosition);
+
+            final PlanetActor newPlanetActor = new PlanetActor(world, assetsProvider, newPlanetData);
+            //newPlanetActor.body.setLinearVelocity(body.getLinearVelocity());
+            newPlanetActors.add(newPlanetActor);
+        }
+        return newPlanetActors;
+    }
+
     @Override
     public void draw(final Batch batch, final float parentAlpha) {
         super.draw(batch, parentAlpha);
@@ -104,7 +108,7 @@ public class PlanetActor extends GravityActor<PlanetData> {
             orbit.remove(orbit.size() - 1);
         }
         //if (orbitSplitCounter > 10) {
-            final Vector2 orbitPos = new Vector2(body.getPosition().x, body.getPosition().y);
+            final Vector2 orbitPos = body.getPosition().cpy();
             if (orbit.size() == 0 || !orbit.get(orbit.size() - 1).equals(orbitPos)) {
                 orbit.add(orbitPos);
             }

@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.MassData;
@@ -25,14 +26,31 @@ public abstract class GravityActor<T extends GravityData> extends Actor {
     protected final Body body;
     protected final Texture texture;
 
-    public GravityActor(final World world, final AssetsProvider assetsProvider) {
+    public GravityActor(final World world, final AssetsProvider assetsProvider, final T gravityData) {
         this.world = world;
         this.assetsProvider = assetsProvider;
-        this.body = createBody();
+        this.body = createBody(gravityData);
         this.texture = createTexture();
     }
 
-    protected abstract Body createBody();
+    protected Body createBody(final T gravityData) {
+        final BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
+        bodyDef.position.set(gravityData.getPosition());
+        final Body body = world.createBody(bodyDef);
+
+        final CircleShape shape = new CircleShape();
+        shape.setRadius(gravityData.getRadius());
+        body.createFixture(shape, 0);
+        shape.dispose();
+
+        final MassData massData = body.getMassData();
+        massData.mass = gravityData.getMass();
+        body.setMassData(massData);
+
+        body.setUserData(gravityData);
+        return body;
+    }
 
     protected abstract Texture createTexture();
 
@@ -74,6 +92,8 @@ public abstract class GravityActor<T extends GravityData> extends Actor {
         massData.mass = userData.getMass();
         body.setMassData(massData);
 
+        userData.setPosition(body.getPosition());
+
         batch.draw(texture, body.getPosition().x - radius, body.getPosition().y - radius, radius * 2, radius * 2);
         setBounds(body.getPosition().x - radius, body.getPosition().y - radius, radius * 2, radius * 2);
     }
@@ -88,9 +108,9 @@ public abstract class GravityActor<T extends GravityData> extends Actor {
     public void applyGravityTo(final GravityActor target) {
         final Body targetBody = target.body;
 
-        final float distance = targetBody.getPosition().dst(body.getPosition());
+        final float distance = targetBody.getPosition().cpy().dst(body.getPosition());
         final float forceValue = Constants.G * body.getMass() * targetBody.getMass() / (distance * distance);
-        final Vector2 direction = body.getPosition().sub(targetBody.getPosition());
+        final Vector2 direction = body.getPosition().cpy().sub(targetBody.getPosition());
 
         targetBody.applyForceToCenter(direction.scl(forceValue), false);
     }
